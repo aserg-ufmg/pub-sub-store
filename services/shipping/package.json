@@ -1,0 +1,11 @@
+{
+  "name": "shipping",
+  "version": "1.0.0",
+  "description": "Serviço responsavel por notificar a necessidade de entrega de um disco de vinil",
+  "main": "app.js",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.7.1",
+    "dotenv": "^8.2.0"
+  }
+}

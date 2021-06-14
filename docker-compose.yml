@@ -1,0 +1,66 @@
+version: "3"
+
+services:
+  q-rabbitmq:
+    container_name: q-rabbitmq
+    image: rabbitmq:3-management
+    hostname: q-rabbitmq-broker
+    restart: unless-stopped
+    networks:
+      - q-rabbitmq-network
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file:
+      - rabbitmq/q-rabbitmq-auth.env
+    # Do some health checks to see if q-rabbitmq is running before starting the other services
+    healthcheck: 
+      test: rabbitmq-diagnostics -q status
+      interval: 15s
+      timeout: 15s
+      retries: 5
+
+  contact-service:
+    container_name: contact-service
+    build:
+      context: .
+      target: contact-service
+    restart: unless-stopped
+    networks:
+      - q-rabbitmq-network
+    env_file:
+      - services/contact/.env
+    depends_on:
+      q-rabbitmq:
+        condition: service_healthy
+
+  order-service:
+    container_name: order-service
+    build:
+      context: .
+      target: order-service
+    restart: unless-stopped
+    networks:
+      - q-rabbitmq-network
+    env_file:
+      - services/order/.env
+    depends_on:
+      q-rabbitmq:
+        condition: service_healthy
+
+  shipping-service:
+    container_name: shipping-service
+    build:
+      context: .
+      target: shipping-service
+    restart: unless-stopped
+    networks:
+      - q-rabbitmq-network
+    env_file:
+      - services/shipping/.env
+    depends_on:
+      q-rabbitmq:
+        condition: service_healthy
+
+networks:
+  q-rabbitmq-network:
