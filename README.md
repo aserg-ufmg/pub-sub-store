@@ -1,38 +1,42 @@
-# Exemplo de uma Aplicação Pub/Sub
+# Pub-Sub-Store: Exemplo Prático de Arquitetura Publish/Subscribe
 
-O objetivo deste roteiro é apresentar uma pequena aplicação construída em uma arquitetura publish/subscribe, usando para isso a ferramenta RabbitMQ.
+Este repositório contem um exemplo simples de uma loja virtual construída usando uma **arquitetura publish/subscribe**.
 
-## Arquitetura orientada a eventos
+O exemplo foi projetado para ser usado em uma **aula prática sobre microsserviços**, que pode, por exemplo, ser realizada após o estudo do [Capítulo 7](https://engsoftmoderna.info/cap7.html) do livro [Engenharia de Software Moderna](https://engsoftmoderna.info).
 
-Ao contrário de um modelo tradicional, no qual um cliente faz uma requisição para um serviço que processa e retorna uma mensagem sincronamente, em uma arquitetura orientada a eventos, temos uma estrutura desacoplada da informação, na qual uma ação, gera eventos que serão processados por aqueles que tiverem interesse nela.
+O objetivo da aula é permitir que o aluno tenha um primeiro contato com esse tipo de arquitetura, bem como com algumas tecnologias usadas na sua implementação. Especificamente, usaremos o sistema 
+[RabbitMQ](https://www.rabbitmq.com) como *broker* para assinatura, publicação e armazenamento de eventos.
 
-Por exemplo, toda ação de comprar uma mercadoria gera um evento, que pode ser do interesse de vários outros serviços, como emissão de nota fiscal, envio da mercadoria e atualização do estoque. Ou seja, a partir de um evento de compra, várias ações independentes podem acontecer.
 
-A seguir ilustramos a arquitetura do nosso sistema de exemplo. Nele, um pedido desencadeia o processamento do pagamento e, em seguida, ações como emissão de nota fiscal (invoice), entrega (delivery) e atualização de estoque (inventory) são executadas de maneiras independente.
+## Arquiteturas Publish/Subscribe
 
-Sendo assim, em uma arquitetura pub/sub temos dois tipos de sistemas (ou processos):
+Em arquiteturas tradicionais, um cliente faz uma requisição para um serviço que processa e retorna uma mensagem sincronamente. Por outro lado, em arquiteturas Publish/Subscribe, temos um **modelo de comunicação assíncrono e fracamente acoplado**, na qual uma aplicação gera eventos que serão processados por aqueles que tiverem interesse nele.
 
- * **Produtores**: processos que são responsáveis por gerar eventos.
+No nosso roteiro, vamos usar como exemplo uma loja virtual construída usando uma arquitetura Pub/Sub. Nessa loja, existe um processo que recebe as compras (*Checkout*) e que publica um evento solicitando o pagamento. Esse evento será consumido assincronamente pelo serviço de pagamento (*Payments*). Supondo que o pagamento foi concluído, esse último serviço publica um novo evento, sinalizando o sucesso da operação de pagamento. Esse evento é então consumido, sempre assincronamento, pelos seguintes serviços:
+
+* *Delivery*, que é responsável por fazer a entrega das mercadorias compradas.
+
+* *Inventory*, que vai atualizar o estoque da loja.
+
+* *Invoices*, que vai gerar a nota fiscal relativa à compra.
+
+![fluxo_compra](./images/fluxo_compras_mensagem.png)
  
- * **Consumidores**: processos que são assinantes de eventos, ou seja, eles maninfestam antecipadamente que querem ser notificados sempre que um determinado evento ocorrer. 
+Resumindo, em uma arquitetura Pub/Sub temos dois tipos de sistemas (ou processos):
 
- ![fluxo_compra](./images/fluxo_compras_mensagem.png)
+ * **Produtores**, que são responsáveis por publicar eventos.
  
-Nessa figura, de um lado temos as aplicações que são produtoras de eventos e do outro aquelas que consomem os eventos. Note que o serviço de pagamento é tanto consumidor do evento de compra, como produtor de eventos para os demais processps do sistema. 
+ * **Consumidores**, que são assinantes de eventos, ou seja, eles maninfestam antecipadamente que querem ser notificados sempre que um determinado evento ocorrer. 
 
-<!---
-## Modelo de pub/sub
+No nosso exemplo, note ainda que o serviço de pagamento é tanto consumidor do evento de solicitação de pagamento, como produtor de eventos para os demais processps do sistema. 
 
- Há diversos modelos que implementam esta noção de arquitetura, neste tutorial iremos focar no modelo pub/sub, que trata-se de uma infraestrutura de mensageria baseada em subscrições em um fluxo de evento. Ou seja, quando um evento acontece ele é publicado e enviado a todos os serviços que estão inscritos nele. 
- 
-![pub_sub_image](https://d1.awsstatic.com/product-marketing/Messaging/sns_img_topic.e024462ec88e79ed63d690a2eed6e050e33fb36f.png)
---->
+Para desenvolver aplicações em uma arquitetura Pub/Sub são utilizadas ferramentas -- às vezes, chamadas também de **brokers** -- que disponibilizam funções para publicar, assinar e receber eventos. Além disso, esses brokers também implementam internamente as filas que vão armazenar os eventos produzidos e consumidos pela aplicação. 
 
-Uma ferramenta de fácil utilização que permite desenvolver aplicações pub/sub é o RabbitMQ, que utilizaremos neste roteiro. Essa ferramenta implementa e disponibiliza funções para publicar, assinar e receber eventos. Além disso, ela implementa internamente uma estrutura de dados que armazena os eventos do sistema.
+No nosso roteiro, conforme já afirmamos, vamos usar um broker chamado [RabbitMQ](https://www.rabbitmq.com). Ele foi escolhido por ser mais simples e fácil de usar.
 
  ## Sistema de Exemplo
 
-Vamos agora dar um pouco mais de informações sobre o nosso sistema de exemplo. Basicamente, imagine que nós ficamos responsáveis por implementar o sistema de pós-venda de uma loja de discos de vinil. Na nossa implementação, a compra de um disco será o evento principal do sistema. Quando ele ocorrer, temos que verificar se o pedido é válido ou não. Se ele for válido, temos que:
+Vamos agora dar um pouco mais de informações sobre o nosso sistema de exemplo. Basicamente, imagine que temos que implementar o sistema de pós-venda de uma loja de discos de vinil. Na nossa implementação, a compra de um disco será o evento principal do sistema. Quando ele ocorrer, temos que verificar se o pedido é válido ou não. Se ele for válido, temos que:
 
  * Notificar o cliente de que o pedido dele foi aprovado
  * Notificar a equipe de transporte de que temos uma nova entrega para fazer. 
@@ -304,3 +308,8 @@ O que vimos aqui foi uma implementação de uma arquitetura orientada a eventos 
 
 Para ser o meio que recebe e transmite as mensagens utilizamos o RabbitMQ, mas também há outras plataformas que poderíamos ter utilizado como por exemplo: [Apache Kafka](https://kafka.apache.org/intro) e [Redis](https://redis.io/topics/pubsub).
 
+## Créditos
+
+Este exercício prático, incluindo o seu código, foi elaborado por **Francielly Neves**, aluna de Sistemas de Informação da UFMG, como parte das suas atividades na disciplina Monografia II, cursada em 2021/1, sob orientação do **Prof. Marco Tulio Valente**.
+
+O código deste repositório possui uma licença MIT. O roteiro descrito acima possui uma licença CC-BY.
