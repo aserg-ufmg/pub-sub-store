@@ -2,10 +2,9 @@
 
 Este repositório contem um exemplo simples de uma loja virtual construída usando uma **arquitetura publish/subscribe**.
 
-O exemplo foi projetado para ser usado em uma **aula prática sobre microsserviços**, que pode, por exemplo, ser realizada após o estudo do [Capítulo 7](https://engsoftmoderna.info/cap7.html) do livro [Engenharia de Software Moderna](https://engsoftmoderna.info).
+O exemplo foi projetado para ser usado em uma aula prática sobre esse tipo de arquitetura, que pode, por exemplo, ser realizada após o estudo do [Capítulo 7](https://engsoftmoderna.info/cap7.html) do livro [Engenharia de Software Moderna](https://engsoftmoderna.info).
 
-O objetivo da aula é permitir que o aluno tenha um primeiro contato com esse tipo de arquitetura, bem como com algumas tecnologias usadas na sua implementação. Especificamente, usaremos o sistema 
-[RabbitMQ](https://www.rabbitmq.com) como *broker* para assinatura, publicação e armazenamento de eventos.
+O objetivo da aula é permitir que o aluno tenha um primeiro contato prático com arquiteturas Publish/Subscribe, bem como com algumas tecnologias usadas na sua implementação. Especificamente, usaremos o sistema  [RabbitMQ](https://www.rabbitmq.com) como *broker* para assinatura, publicação e armazenamento de eventos.
 
 
 ## Arquiteturas Publish/Subscribe
