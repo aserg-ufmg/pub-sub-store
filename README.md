@@ -159,7 +159,7 @@ Para inicializar o serviço, basta executar o seguinte comando na raiz do projet
 ```
 docker-compose up -d --build order-service
 ````
-Após executé-lo, você pode acessar o log da aplicação por meio do seguinte comando:
+Após executá-lo, você pode acessar o log da aplicação por meio do seguinte comando:
 
 ````
  docker logs order-service
@@ -167,7 +167,7 @@ Após executé-lo, você pode acessar o log da aplicação por meio do seguinte 
 
 Ao analisar esse log, pode-se ver que a mensagem que inserimos na fila do RabittMQ no passo anterior foi processada com sucesso. 
 
-Isso ilustra uma característica importante de aplicações construídas com uma arquitetura Pub/Sub: elas são tolerantes a falhas. Por exemplo, se um dos consumidores estiver fora do ar, o "evento não se perde" e será processado assim que o consumidor ficar disponível novamente.
+O que acabamos de fazer ilustra uma característica importante de aplicações construídas com uma arquitetura Pub/Sub: elas são tolerantes a falhas. Por exemplo, se um  consumidor estiver fora do ar, o evento não se perde e será processado assim que o consumidor ficar disponível novamente.
 
 Outra coisa que vale a pena mencionar: ao acessar a aba `Queues` no RabbitMQ, vamos ver que existem duas novas filas:
 
@@ -178,11 +178,11 @@ Essas novas filas, `shipping` e `contact`, serão usadas, respectivamente, para 
 * Um serviço que solicita o envio da mercadoria
 * Um serviço que contacta o cliente por email, informando se seu pedido foi aprovado ou não.
 
-Ambos já foram implementados em nosso reposistório, conforme explicaremos a seguir.
+Ambos já estão implementados em nosso reposistório, conforme explicaremos a seguir.
 
 ### 2º Serviço: Envio de E-mail para o Cliente 
 
-O serviço [contact](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/contact) implementa uma lógica que contacta o cliente por e-mail, informando o status da sua compra.  Ele assina os eventos da fila `contact` e, para cada novo evento, envia um email para o cliente responsável pela compra. A função `processMessage(msg)` é responsável por isso:
+O serviço [contact](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/contact) implementa uma lógica que contacta o cliente por e-mail, informando o status da sua compra.  Ele assina os eventos da fila `contact` e, para cada novo evento, envia um email para o cliente responsável pela compra. A seguinte função `processMessage(msg)` é responsável por isso:
 
 ```JavaScript
 async function processMessage(msg) {
@@ -216,25 +216,28 @@ async function processMessage(msg) {
 }
 ```
 
-Para testar o envio de e-mail, recomendamos usar um sistema chamado [mailtrap](https://mailtrap.io/). Para isso, basta criar uma [conta](https://mailtrap.io/register/signup?ref=header), fornecendo dados básicos do seu email e nome. Assim que você criar a conta, será redirecionado para a página principal, onde o campo `Show Credentials` estará encolhido, conforme a imagem abaixo:
+Para testar o envio de e-mail, vamos usar um serviço externo chamado [mailtrap](https://mailtrap.io/). Ele é um serviço especificamente criado para teste de sistemas que precisam enviar mails. Assim, você não precisa liberar acesso à sua conta pessoal de e-mail.
+
+Para usar o mailtrap, basta criar uma [conta](https://mailtrap.io/register/signup?ref=header), fornecendo dados básicos do seu email e nome. Assim que você criar a conta, será redirecionado para a página principal, conforme a imagem abaixo:
 
 ![pagina_principal](./images/mailtrap-credentials.jpg)
 
-Para configurar o seu projeto, basta expandir `Show Credentials` e copiar o Username e Password no arquivo [./services/contact/.env](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/blob/master/services/contact/.env), conforme exemplo abaixo:
+Para configurar o uso do mailtrap na nossa loja virtual, basta expandir `Show Credentials` (veja na figura acima) e copiar o Username e Password no arquivo local [./services/contact/.env](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/blob/master/services/contact/.env), conforme exemplo abaixo:
 
 ```js
 USER  = "a361840f92fg31"
 PASS  = "a16cb6f3d35b70"
 ```
-Após essa configuração, os emails enviados pelo nosso sistema serão encaminhados para sua conta teste do mailtrap.  
 
-Finalmente, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via docker, por meio do seguinte comando (que deve ser chamado na raiz do projeto):
+Após essa configuração, os emails enviados pelo nosso sistema serão encaminhados para sua conta de teste do mailtrap.  
+
+Finalmente, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
 
 ```
 docker-compose up -d --build contact-service
 ````
  
-Assim que o build finalizar, o serviço `contact-service` irá se conectar com RabbitMQ, consumirá a mensagem e notificará o cliente por email que sua compra foi processada, conforme mostrado na seguinte mensagem de log:
+Assim que o build finalizar, o serviço `contact-service` irá se conectar com RabbitMQ, consumirá a mensagem e notificará o cliente por email de que sua compra foi processada, conforme mostrado na seguinte mensagem de log:
 
 ![log_email](./images/log_email.jpg)
 
@@ -244,14 +247,14 @@ Para visualizar esse log, basta executar:
  docker logs contact-service
 ````
 
-Outra forma de verificar que a mensagem foi processada é acessando a caixa de entrada do mailtrap, conforme imagem abaixo:
+Outra forma de verificar que a mensagem foi enviada, é acessando a caixa de entrada do mailtrap, conforme imagem abaixo:
 
 
 ![pedido_aprovado](./images/pedido_aprovado.jpg)
 
 ### 3º Serviço: Responsável por solicitar o envio de mercadoria
 
-E agora temos que colocar o terceiro serviço no ar. Esse serviço encaminha o pedido para o departamento de despacho, que é responsável por enviar a encomenda chegue para a casa do cliente. Essa tarefa é de responsabilidade do serviço [shipping](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/shipping), que conecta-se à fila `shipping` do RabbitMQ  e exibe o endereço da entrega.
+E agora temos que colocar o terceiro serviço no ar. Esse serviço encaminha o pedido para o departamento de despacho, que será responsável por enviar a encomenda para a casa do cliente. Essa tarefa é de responsabilidade do serviço [shipping](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/shipping), que conecta-se à fila `shipping` do RabbitMQ  e exibe o endereço da entrega.
 
 
 ```JavaScript
@@ -271,13 +274,13 @@ async function processMessage(msg) {
 }
 ```
 
-Para executar o serviço `shipping`, basta usar:
+Para executar esse terceiro serviço, basta usar:
 
 ```
 docker-compose up -d --build shipping-service
 ````
 
-E, como fizemos com o seruiço anterior, para visualizar as informações exibidas pela aplicação, basta acessar o seu log:
+E, como fizemos antes, para visualizar as informações exibidas pela aplicação, basta acessar o seu log:
 
 ````
  docker logs shipping-service
@@ -285,13 +288,12 @@ E, como fizemos com o seruiço anterior, para visualizar as informações exibid
 
 ![shipping_message](./images/shipping_message.png)
 
-
-Com isso, finalizamos e executamos todos os serviços do nosso sistema de exemplo construído em uma arquitetura pub/sub.
+**Comentário Final:** Com isso, executamos todos os serviços da nossa loja virtual.
 
 Mas sugerimos que você faça novos testes, para entender melhor os benefícios desse tipo de arquitetura. Por exemplo, você pode:
 
-* subir e derrubar os serviços, em qualquer ordem, e testar se não há mesmo perda de mensagens
-* publicar uma nova mensagem na fila e verificar se ela vai ser mesmo consumida por todos os serviços.
+* Subir e derrubar os serviços, em qualquer ordem, e testar se não há perda de mensagens.
+* Publicar uma nova mensagem na fila e testar se ela vai ser mesmo consumida por todos os serviços.
 
 Para encerrar o container e finalizar as aplicações, basta executar: 
 
@@ -299,21 +301,19 @@ Para encerrar o container e finalizar as aplicações, basta executar:
 docker-compose down
 ````
 
-### Passo 3:  Sua Vez: Colocando as mãos na massa
+## Passo 3:  Colocando a Mão na Massa
 
-Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura pub/sub e apenas precisamos "plugar" esse novo serviço de relatórios no sistema, o qual irá também consumir eventos publicados na fila `orders`. 
+Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema. Especificamente, ele irá também consumir eventos publicados na fila `orders`. 
 
 Seria possível nos ajudar e colocar em prática o que viu neste tutorial e construir uma aplicação que gere este relatório? 
 
-Nós começamos a construí-la e vocês podem usar o nosso código como exemplo. Mas não precisa ficar limitado a ele, você pode consumir mensagens de diferentes formas e com outras linguagens de programação.  Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
+Nós começamos a construí-la e vocês podem usar o nosso código como exemplo. Mas não precisa ficar limitado a ele, você pode consumir mensagens de diferentes formas e com outras linguagens de programação. Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
 
 Qualquer dúvida, sintam-se à vontade para nos procurar: francielly.neves2@gmail.com
 
-### Como continuar os estudos?
+### Outros Brokers de Eventos
 
-O que vimos aqui foi uma implementação de uma arquitetura orientada a eventos utilizando o modelo pub/sub, mas existem outros modelos, como por exemplo de transmissão de eventos. Mais detalhes sobre esta forma de arquitetura e outros modelos possíveis você pode encontrar [neste post da RedHat](https://www.redhat.com/pt-br/topics/integration/what-is-event-driven-architecture).
-
-Para ser o meio que recebe e transmite as mensagens utilizamos o RabbitMQ, mas também há outras plataformas que poderíamos ter utilizado como por exemplo: [Apache Kafka](https://kafka.apache.org/intro) e [Redis](https://redis.io/topics/pubsub).
+No roteiro, devido à sua interface de mais fácil uso, usamos o RabbitMQ, mas há outros sistemas que poderíamos ter utilizado, tais como [Apache Kafka](https://kafka.apache.org/intro) e [Redis](https://redis.io/topics/pubsub).
 
 ## Créditos
 
