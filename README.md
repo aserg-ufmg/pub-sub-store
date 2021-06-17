@@ -4,18 +4,22 @@ Este repositório contem um exemplo simples de uma loja virtual construída usan
 
 O exemplo foi projetado para ser usado em uma aula prática sobre esse tipo de arquitetura, que pode, por exemplo, ser realizada após o estudo do [Capítulo 7](https://engsoftmoderna.info/cap7.html) do livro [Engenharia de Software Moderna](https://engsoftmoderna.info).
 
-O objetivo é permitir que o aluno tenha um primeiro contato prático com arquiteturas Publish/Subscribe e com tecnologias usadas na implementação de tais arquiteturas. Especificamente, usaremos o sistema  [RabbitMQ](https://www.rabbitmq.com) como *broker* para assinatura, publicação e armazenamento de eventos.
+O objetivo é permitir que o aluno tenha um primeiro contato prático com arquiteturas Publish/Subscribe e com tecnologias usadas na implementação das mesmas. Especificamente, usaremos o sistema  [RabbitMQ](https://www.rabbitmq.com) como *broker* para assinatura, publicação e armazenamento de eventos.
 
 
 ## Arquiteturas Publish/Subscribe
 
-Em arquiteturas tradicionais, um cliente faz uma requisição para um serviço que processa e retorna uma mensagem sincronamente. Por outro lado, em arquiteturas Publish/Subscribe, temos um **modelo de comunicação assíncrono e fracamente acoplado**, no qual uma aplicação gera eventos que serão processados por outras aplicações que tiverem interesse nele.
+Em arquiteturas tradicionais, um cliente faz uma requisição para um serviço que processa e retorna uma mensagem sincronamente. 
+
+Por outro lado, em arquiteturas Publish/Subscribe, temos um **modelo de comunicação assíncrono e fracamente acoplado**, no qual uma aplicação gera eventos que serão processados por outras aplicações que tiverem interesse nele.
 
 Suponha uma loja virtual construída usando uma arquitetura Pub/Sub, conforme ilustrado a seguir. 
 
 ![fluxo_compra](./images/fluxo_compras_mensagem.png)
 
-Nessa loja, existe um processo que recebe as compras (*Checkout*) e que publica um evento solicitando o pagamento. Esse evento é consumido assincronamente pelo serviço de pagamento (*Payments*). Em seguida, e supondo que o pagamento foi realizado, esse último serviço publica um novo evento, sinalizando o sucesso da operação. Esse segundo evento é consumido, sempre assincronamente, pelos seguintes serviços:
+Nessa loja, existe um processo que recebe as compras (*Checkout*) e que publica um evento solicitando o pagamento. Esse evento é consumido assincronamente pelo serviço de pagamento (*Payments*), conforme ilustrado na parte superior da figura.
+
+Em seguida, e supondo que o pagamento foi realizado, esse último serviço publica um novo evento, sinalizando o sucesso da operação (parte inferior da figura). Esse segundo evento é consumido, sempre assincronamente, pelos seguintes serviços:
 
 * *Delivery*, que é responsável por fazer a entrega das mercadorias compradas.
 
@@ -29,9 +33,9 @@ Portanto, em uma arquitetura Pub/Sub temos dois tipos de sistemas (ou processos)
  
  * **Consumidores**, que são assinantes de eventos, ou seja, eles maninfestam antecipadamente que querem ser notificados sempre que um determinado evento ocorrer. 
 
-No exemplo, o serviço de pagamento é tanto consumidor do evento de solicitação de pagamento como produtor de eventos para os demais processos do sistema. 
+No nosso exemplo, o serviço de pagamento é tanto consumidor do evento de solicitação de pagamento como produtor de eventos para os demais processos do sistema. 
 
-Para desenvolver aplicações com arquiteturas Pub/Sub são utilizadas ferramentas -- também chamadas de **brokers** -- que disponibilizam funções para publicar, assinar e receber eventos. Além disso, esses brokers implementam internamente as filas que vão armazenar os eventos produzidos e consumidos pela aplicação. 
+Para desenvolver aplicações com arquiteturas Pub/Sub são utilizadas ferramentas -- também chamadas de **brokers** -- que disponibilizam funções para publicar, assinar e receber eventos. Além disso, esses brokers implementam internamente as filas que vão armazenar os eventos produzidos e consumidos na aplicação. 
 
 No nosso roteiro, conforme afirmamos, vamos usar um broker chamado [RabbitMQ](https://www.rabbitmq.com). Ele foi escolhido por ser mais simples e fácil de usar.
 
@@ -54,15 +58,15 @@ Temos portanto a seguinte arquitetura mais detalhada:
 
 ![system_design](./images/system_design.png)
 
-Borá colocá-la em prática?  Primeiro, façca um fork deste repositório e siga os três passos a seguir:
+Borá colocá-la em prática?  Primeiro, faça um fork deste repositório (veja botão no canto superior direito do site) e siga os três passos a seguir.
 
 ## Passo 1: Instalando, Executando e Inicializando o RabbitMQ
 
-Como afirmamos antes, toda a lógica de Pub/Sub do nosso sistema será gerenciada pelo RabbitMQ. Ou seja, o armazenamento, publicação, assinatura e notificação de eventos será de responsabilidade desse broker. 
+Como afirmamos antes, a lógica de Pub/Sub do nosso sistema será gerenciada pelo RabbitMQ. Ou seja, o armazenamento, publicação, assinatura e notificação de eventos será de responsabilidade desse broker. 
 
-Para facilitar o seu uso e execução, neste repositório já temos um container docker com uma imagem do RabbitMQ. Se você não possui o Docker instalado na sua máquina, veja como fazer isso no seguinte [link](https://www.docker.com/products/docker-desktop).
+Para facilitar o seu uso e execução, neste repositório já temos um container Docker com uma imagem do RabbitMQ. Se você não possui o Docker instalado na sua máquina, veja como fazer isso no seguinte [link](https://www.docker.com/products/docker-desktop).
 
-Após o download, basta executar o docker e, em seguida, executar o comando abaixo, na pasta raiz do projeto:
+Após o download, basta executar o Docker e, em seguida, executar o comando abaixo, na pasta raiz do projeto:
 
 ```
 docker-compose up -d q-rabbitmq
@@ -70,15 +74,15 @@ docker-compose up -d q-rabbitmq
 
 Após rodar esse comando, uma imagem do RabbitMQ estará executando localmente e podemos acessar sua interface gráfica, digitando no navegador: http://localhost:15672/. 
 
-Por meio dessa interface, é possível monitorar as filas que estão sendo gerenciadas pelo RabbitMQ. Por exemplo, pode-se ver o número de mensagens em cada fila e as aplicações que estão conectadas nelas.
+Por meio dessa interface, é possível monitorar as filas que são gerenciadas pelo RabbitMQ. Por exemplo, pode-se ver o número de mensagens em cada fila e as aplicações que estão conectadas nelas.
 
 No entanto, ainda não temos nenhuma fila. Vamos, portanto, criar uma, mesmo sem nenhum outro processo ainda estar rodando. 
 
-Como ilustrado na próxima figura, vá até a guia `Queues`, na sessão `add a new queue`. Preencha os campos `name` como `orders` e clique na opção `lazy mode`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos demais processos que iremos criar nos próximos passos.
+Como ilustrado na próxima figura, vá até a guia `Queues`, na sessão `add a new queue`. Preencha os campos `name` como `orders` e clique na opção `lazy mode`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos processos que vamos criar nos próximos passos.
 
 ![create_queue](./images/create_queue.png)
 
-Com a fila criada, podemos agora criar um evento representando um pedido, de acordo com o formato abaixo (substitua os campos com dados fictícios a sua escolha):
+Com a fila criada, podemos agora criar um evento representando um pedido, de acordo com o formato abaixo (substitua os campos com dados fictícios à sua escolha):
 
 ````json
 {
@@ -120,7 +124,7 @@ Na sessão `Publish message`, copie o JSON no campo `Payload`. Em seguida, cliqu
 
 Até este momento, temos uma fila `orders`, com um evento em espera para ser processado. Ou seja, está na hora de subir uma aplicação para consumi-lo.
 
-Na pasta `service` deste repositório, já implementamos o serviço [orders](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/34dda5e88c3df59065989a7593fd2d1dd0f8855d/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado as filas de contactar o cliente (*contact*) e de preparo de envio (*shipping*), como é possivel ver no código da função que processa as mensagens recebidas:
+Na pasta `service` deste repositório, já implementamos o serviço [orders](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/34dda5e88c3df59065989a7593fd2d1dd0f8855d/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado para duas filas: contactar cliente (*contact*) e preparo de envio (*shipping*), como é possivel ver no seguinte código:
 
 ``` JavaScript
 async function processMessage(msg) {
