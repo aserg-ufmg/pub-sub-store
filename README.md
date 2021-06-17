@@ -180,7 +180,7 @@ Essas novas filas, `shipping` e `contact`, serão usadas, respectivamente, para 
 
 Ambos já estão implementados em nosso reposistório, conforme explicaremos a seguir.
 
-### 2º Serviço: Envio de E-mail para o Cliente 
+### 2º Serviço: Envio de E-mail para Cliente 
 
 O serviço [contact](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/contact) implementa uma lógica que contacta o cliente por e-mail, informando o status da sua compra.  Ele assina os eventos da fila `contact` e, para cada novo evento, envia um email para o cliente responsável pela compra. A seguinte função `processMessage(msg)` é responsável por isso:
 
