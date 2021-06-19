@@ -1,7 +1,7 @@
 const RabbitMQService = require('./rabbitmq-service')
 const nodemailer = require('nodemailer')
 const path = require('path')
-const fs = require('fs');
+const fs = require('fs')
 
 
 require('dotenv').config({ path: path.resolve(__dirname, '.env') })
@@ -19,10 +19,11 @@ async function processMessage(msg) {
             'attachments': null
         }
 
-        fs.writeFileSync(`${new Date()} - ${mailOptions.subject}.txt`, mailOptions);
+        fs.writeFileSync(`${mailOptions.subject}-${mailOptions.to}.json`, JSON.stringify(mailOptions));
         
         console.log(`✔ SUCCESS`)
     } catch (error) {
+        console.log(error)
         console.log(`X ERROR TO PROCESS: ${error.response}`)
     }
 }
