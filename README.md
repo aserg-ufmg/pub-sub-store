@@ -188,15 +188,6 @@ O serviço [contact](https://github.com/franneves/exemplo-de-uma-arquitetura-ori
 async function processMessage(msg) {
     const mailData = JSON.parse(msg.content)
     try {
-        const transporter = await nodemailer.createTransport({
-            host: "smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-                user: process.env.USER,
-                pass: process.env.PASS
-            }
-        })
-
         const mailOptions = {
             'from': process.env.MAIL_USER,
             'to': `${mailData.clientFullName} <${mailData.to}>`,
@@ -207,8 +198,8 @@ async function processMessage(msg) {
             'attachments': null
         }
 
-        await transporter.sendMail(mailOptions)
-
+        fs.writeFileSync(`${new Date()} - ${mailOptions.subject}.txt`, mailOptions);
+ 
         console.log(`✔ SUCCESS`)
     } catch (error) {
         console.log(`X ERROR TO PROCESS: ${error.response}`)
@@ -216,22 +207,11 @@ async function processMessage(msg) {
 }
 ```
 
-Para testar o envio de e-mail, vamos usar um serviço externo chamado [mailtrap](https://mailtrap.io/). Ele é um serviço especificamente criado para teste de sistemas que precisam enviar mails. Assim, você não precisa liberar acesso à sua conta pessoal de e-mail.
+Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos txt com o conteúdo que teria o email, para poder observar como seria os emaisl caso estivessemos de fato enviado. 
 
-Para usar o mailtrap, basta criar uma [conta](https://mailtrap.io/register/signup?ref=header), fornecendo dados básicos do seu email e nome. Assim que você criar a conta, será redirecionado para a página principal, conforme a imagem abaixo:
+Para enviar emails de verdade bastaria substituir a escrita do arquivo para um provedor de envio. A provedores de testes também no mercado, caso queira testar, um serviço possivel de se usar é o [mailtrap](https://mailtrap.io/).
 
-![pagina_principal](./images/mailtrap-credentials.jpg)
-
-Para configurar o uso do mailtrap na nossa loja virtual, basta expandir `Show Credentials` (veja na figura acima) e copiar o Username e Password no arquivo local [./services/contact/.env](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/blob/master/services/contact/.env), conforme exemplo abaixo:
-
-```js
-USER  = "a361840f92fg31"
-PASS  = "a16cb6f3d35b70"
-```
-
-Após essa configuração, os emails enviados pelo nosso sistema serão encaminhados para sua conta de teste do mailtrap.  
-
-Finalmente, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
+ Continuando o fluxo, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
 
 ```
 docker-compose up -d --build contact-service
@@ -247,10 +227,9 @@ Para visualizar esse log, basta executar:
  docker logs contact-service
 ````
 
-Outra forma de verificar que a mensagem foi enviada, é acessando a caixa de entrada do mailtrap, conforme imagem abaixo:
+Outra forma de verificar que a mensagem foi enviada, é certificando-se que foi criado o arquivo .txt com o email:
 
-
-![pedido_aprovado](./images/pedido_aprovado.jpg)
+//todo: add photo
 
 ### 3º Serviço: Responsável por solicitar o envio de mercadoria
 
