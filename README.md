@@ -303,11 +303,13 @@ docker-compose down
 
 ## Passo 3:  Colocando a Mão na Massa
 
-Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema. Especificamente, ele irá também consumir eventos publicados na fila `orders`. 
+Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema.
+
+Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada report, portanto para realizar a análise basta consumir os eventos publicados na fila `reports`. 
 
 Seria possível nos ajudar e colocar em prática o que viu neste tutorial e construir uma aplicação que gere este relatório? 
 
-Nós começamos a construí-la e vocês podem usar o nosso código como exemplo. Mas não precisa ficar limitado a ele, você pode consumir mensagens de diferentes formas e com outras linguagens de programação. Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
+Nós começamos a construí-la e vocês podem usar o nosso código como [exemplo](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/report). Mas não precisa ficar limitado a ele, você pode consumir mensagens de diferentes formas e com outras linguagens de programação. Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
 
 Qualquer dúvida, sintam-se à vontade para nos procurar: francielly.neves2@gmail.com
 
