@@ -50,7 +50,7 @@ Imagine que essa loja vende discos de vinil e que temos que implementar o seu si
 
  Por outro lado, caso o pedido seja inválido teremos que:
  
-  * Notificar o cliente de que faltou uma determinada informação no seu pedido.
+* Notificar o cliente de que faltou uma determinada informação no seu pedido.
 
 Essas ações são independentes, ou seja, o cliente não vai ficar esperando o término de todo o processamento de seu pedido. Em vez disso, podemos informá-lo de que o seu pedido está sendo processado e, quando finalizarmos tudo, ele será avisado. 
 
@@ -72,7 +72,12 @@ Após o download, basta executar o Docker e, em seguida, executar o comando abai
 docker-compose up -d q-rabbitmq
 ````
 
-Após rodar esse comando, uma imagem do RabbitMQ estará executando localmente e podemos acessar sua interface gráfica, digitando no navegador: http://localhost:15672/. 
+Após rodar esse comando, uma imagem do RabbitMQ estará executando localmente e podemos acessar sua interface gráfica, digitando no navegador: http://localhost:15672 
+
+Por padrão, o acesso a interface terá como usuario e senha a palvra: guest (conforme imagem a baixo). Este usuario pode ser modificados, editando este [arquivo](https://github.com/aserg-ufmg/pub-sub-store/blob/263c006556f2989324459ca9bd43544905e4335d/rabbitmq/q-rabbitmq-auth.env)
+
+![login_rabbitMQ](./images/login_rabbit_mq.png)
+
 
 Por meio dessa interface, é possível monitorar as filas que são gerenciadas pelo RabbitMQ. Por exemplo, pode-se ver o número de mensagens em cada fila e as aplicações que estão conectadas nelas.
 
