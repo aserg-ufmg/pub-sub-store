@@ -1,6 +1,6 @@
 # Pub-Sub-Store: Exemplo Prático de Arquitetura Publish/Subscribe
 
-Este repositório contem um exemplo simples de uma loja virtual construída usando uma **arquitetura publish/subscribe**.
+Este repositório contém um exemplo simples de uma loja virtual construída usando uma **arquitetura publish/subscribe**.
 
 O exemplo foi projetado para ser usado em uma aula prática sobre esse tipo de arquitetura, que pode, por exemplo, ser realizada após o estudo do [Capítulo 7](https://engsoftmoderna.info/cap7.html) do livro [Engenharia de Software Moderna](https://engsoftmoderna.info).
 
@@ -31,7 +31,7 @@ Portanto, em uma arquitetura Pub/Sub temos dois tipos de sistemas (ou processos)
 
  * **Produtores**, que são responsáveis por publicar eventos.
  
- * **Consumidores**, que são assinantes de eventos, ou seja, eles maninfestam antecipadamente que querem ser notificados sempre que um determinado evento ocorrer. 
+ * **Consumidores**, que são assinantes de eventos, ou seja, eles manifestam antecipadamente que querem ser notificados sempre que um determinado evento ocorrer. 
 
 No nosso exemplo, o serviço de pagamento é tanto consumidor do evento de solicitação de pagamento como produtor de eventos para os demais processos do sistema. 
 
@@ -43,7 +43,7 @@ No nosso roteiro, conforme afirmamos, vamos usar um broker chamado [RabbitMQ](ht
 
 Vamos agora implementar uma loja virtual com uma arquitetura Pub/Sub, de forma semelhante ao exemplo mostrado na seção anterior. 
 
-Imagine que essa loja vende discos de vinil e que temos que implementar o seu sistema de pós-venda. Por isso, a compra de um disco será o evento principal do sistema. Quando ele ocorrer, temos que verificar se o pedido é válido ou não, ou sejá se tem os dados necessários para a compra ser efetuada com sucesso ou se faltou alguma informação para que possamos prosseguir com a compra. Se ele for válido, temos que:
+Imagine que essa loja vende discos de vinil e que temos que implementar o seu sistema de pós-venda. Por isso, a compra de um disco será o evento principal do sistema. Quando ele ocorrer, temos que verificar se o pedido é válido ou não, ou seja se tem os dados necessários para a compra ser efetuada com sucesso ou se faltou alguma informação para que possamos prosseguir com a compra. Se ele for válido, temos que:
 
  * Notificar o cliente de que o seu pedido foi aprovado.
  * Notificar a equipe de transporte de que temos uma nova entrega para fazer. 
@@ -74,14 +74,14 @@ docker-compose up -d q-rabbitmq
 
 Após rodar esse comando, uma imagem do RabbitMQ estará executando localmente e podemos acessar sua interface gráfica, digitando no navegador: http://localhost:15672 
 
-Por padrão, o acesso a interface terá como usuario e senha a palvra: guest (conforme imagem a baixo). Este usuario pode ser modificados, editando este [arquivo](https://github.com/aserg-ufmg/pub-sub-store/blob/263c006556f2989324459ca9bd43544905e4335d/rabbitmq/q-rabbitmq-auth.env)
+Por padrão, o acesso a interface terá como usuário e senha a palavra: guest (conforme imagem abaixo). Este usuário pode ser modificados, editando este [arquivo](https://github.com/aserg-ufmg/pub-sub-store/blob/263c006556f2989324459ca9bd43544905e4335d/rabbitmq/q-rabbitmq-auth.env)
 
 ![login_rabbitMQ](./images/login_rabbit_mq.png)
 
 
 Por meio dessa interface, é possível monitorar as filas que são gerenciadas pelo RabbitMQ. Por exemplo, pode-se ver o número de mensagens em cada fila e as aplicações que estão conectadas nelas.
 
-No entanto, ainda não temos nenhuma fila. Vamos, portanto, criar uma, mesmo sem nenhum outro processo ainda estar rodando. 
+No entanto, ainda não temos nenhuma fila. Vamos, portanto, criar uma, mesmo sem nenhum outro processo ainda está rodando. 
 
 Como ilustrado na próxima figura, vá até a guia `Queues`, na sessão `add a new queue`. Preencha os campos `name` como `orders` e clique na opção `lazy mode`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos processos que vamos criar nos próximos passos.
 
@@ -129,7 +129,7 @@ Na sessão `Publish message`, copie o JSON no campo `Payload`. Em seguida, cliqu
 
 Até este momento, temos uma fila `orders`, com um evento em espera para ser processado. Ou seja, está na hora de subir uma aplicação para consumi-lo.
 
-Na pasta `service` deste repositório, já implementamos o serviço [orders](/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado para duas filas: contactar cliente (*contact*) e preparo de envio (*shipping*), como é possivel ver no seguinte código:
+Na pasta `service` deste repositório, já implementamos o serviço [orders](/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado para duas filas: contactar cliente (*contact*) e preparo de envio (*shipping*), como é possível ver no seguinte código:
 
 ``` JavaScript
 async function processMessage(msg) {
@@ -170,7 +170,7 @@ Após executá-lo, você pode acessar o log da aplicação por meio do seguinte 
  docker logs order-service
 ````
 
-Ao analisar esse log, pode-se ver que a mensagem que inserimos na fila do RabittMQ no passo anterior foi processada com sucesso. 
+Ao analisar este log, pode-se ver que a mensagem que inserimos na fila do RabittMQ no passo anterior foi processada com sucesso. 
 
 O que acabamos de fazer ilustra uma característica importante de aplicações construídas com uma arquitetura Pub/Sub: elas são tolerantes a falhas. Por exemplo, se um  consumidor estiver fora do ar, o evento não se perde e será processado assim que o consumidor ficar disponível novamente.
 
@@ -181,9 +181,9 @@ Outra coisa que vale a pena mencionar: ao acessar a aba `Queues` no RabbitMQ, va
 Essas novas filas, `shipping` e `contact`, serão usadas, respectivamente, para comunicação com dois novos serviços:
 
 * Um serviço que solicita o envio da mercadoria
-* Um serviço que contacta o cliente por email, informando se seu pedido foi aprovado ou não.
+* Um serviço que contacta o cliente por email, informando se o seu pedido foi aprovado ou não.
 
-Ambos já estão implementados em nosso reposistório, conforme explicaremos a seguir.
+Ambos já estão implementados em nosso repositório, conforme explicaremos a seguir.
 
 ### 2º Serviço: Envio de E-mail para Cliente 
 
@@ -212,9 +212,8 @@ async function processMessage(msg) {
 }
 ```
 
-Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos txt com o conteúdo que teria o email, para poder observar como seria os emaisl caso estivessemos de fato enviado. 
-
-Para enviar emails de verdade bastaria substituir a escrita do arquivo para um provedor de envio. A provedores de testes também no mercado, caso queira testar, um serviço possivel de se usar é o [mailtrap](https://mailtrap.io/).
+Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos txt com o conteúdo que teria o email, para poder observar como seria os e-mails caso estivessemos de fato enviados.
+Para enviar emails de verdade bastaria substituir a escrita do arquivo para um provedor de envio. A provedores de testes também no mercado, caso queira testar, um serviço possível de se usar é o [mailtrap](https://mailtrap.io/).
 
  Continuando o fluxo, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
 
