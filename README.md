@@ -212,8 +212,8 @@ async function processMessage(msg) {
 }
 ```
 
-Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos .json com o conteúdo que teria o email, para poder observar como seria os e-mails caso estivessemos de fato enviados.
-Para enviar emails de verdade bastaria substituir a escrita do arquivo por um provedor de envio. A provedores de testes também no mercado, caso queira testar, um serviço possível de se usar é o [mailtrap](https://mailtrap.io/).
+Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos .json com o conteúdo que teria o email, para poder observar como seria os e-mails caso eles estivessem sendo enviados.
+Para enviar emails de verdade bastaria substituir a escrita do arquivo por um provedor de envio de e-mails. A provedores de testes também no mercado, caso queira testar, um serviço possível de se usar é o [mailtrap](https://mailtrap.io/).
 
  Continuando o fluxo, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
 
@@ -221,17 +221,11 @@ Para enviar emails de verdade bastaria substituir a escrita do arquivo por um pr
 docker-compose up -d --build contact-service
 ````
  
-Assim que o build finalizar, o serviço `contact-service` irá se conectar com RabbitMQ, consumirá a mensagem e notificará o cliente por email de que sua compra foi processada, conforme mostrado na seguinte mensagem de log:
-
-![log_email](./images/log_email.jpg)
-
-Para visualizar esse log, basta executar:
+Assim que o build finalizar, o serviço `contact-service` irá se conectar com RabbitMQ, consumirá a mensagem e gerara o arquivo .json com o conteúdo do email, na pasta do projeto contact. Para visualizar o log desta ação, basta executar:
 
 ````
  docker logs contact-service
 ````
-
-Outra forma de verificar que a mensagem foi enviada, é certificando-se que foi criado o arquivo .json com o email dentro do projeto contact.
 
 ### 3º Serviço: Responsável por solicitar o envio de mercadoria
 
