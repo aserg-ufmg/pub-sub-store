@@ -129,7 +129,7 @@ Na sessão `Publish message`, copie o JSON no campo `Payload`. Em seguida, cliqu
 
 Até este momento, temos uma fila `orders`, com um evento em espera para ser processado. Ou seja, está na hora de subir uma aplicação para consumi-lo.
 
-Na pasta `service` deste repositório, já implementamos o serviço [orders](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/34dda5e88c3df59065989a7593fd2d1dd0f8855d/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado para duas filas: contactar cliente (*contact*) e preparo de envio (*shipping*), como é possivel ver no seguinte código:
+Na pasta `service` deste repositório, já implementamos o serviço [orders](/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado para duas filas: contactar cliente (*contact*) e preparo de envio (*shipping*), como é possivel ver no seguinte código:
 
 ``` JavaScript
 async function processMessage(msg) {
@@ -187,7 +187,7 @@ Ambos já estão implementados em nosso reposistório, conforme explicaremos a s
 
 ### 2º Serviço: Envio de E-mail para Cliente 
 
-O serviço [contact](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/contact) implementa uma lógica que contacta o cliente por e-mail, informando o status da sua compra.  Ele assina os eventos da fila `contact` e, para cada novo evento, envia um email para o cliente responsável pela compra. A seguinte função `processMessage(msg)` é responsável por isso:
+O serviço [contact](/services/contact) implementa uma lógica que contacta o cliente por e-mail, informando o status da sua compra.  Ele assina os eventos da fila `contact` e, para cada novo evento, envia um email para o cliente responsável pela compra. A seguinte função `processMessage(msg)` é responsável por isso:
 
 ```JavaScript
 async function processMessage(msg) {
@@ -236,7 +236,7 @@ Outra forma de verificar que a mensagem foi enviada, é certificando-se que foi 
 
 ### 3º Serviço: Responsável por solicitar o envio de mercadoria
 
-E agora temos que colocar o terceiro serviço no ar. Esse serviço encaminha o pedido para o departamento de despacho, que será responsável por enviar a encomenda para a casa do cliente. Essa tarefa é de responsabilidade do serviço [shipping](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/shipping), que conecta-se à fila `shipping` do RabbitMQ  e exibe o endereço da entrega.
+E agora temos que colocar o terceiro serviço no ar. Esse serviço encaminha o pedido para o departamento de despacho, que será responsável por enviar a encomenda para a casa do cliente. Essa tarefa é de responsabilidade do serviço [shipping](/services/shipping), que conecta-se à fila `shipping` do RabbitMQ  e exibe o endereço da entrega.
 
 
 ```JavaScript
