@@ -43,14 +43,14 @@ No nosso roteiro, conforme afirmamos, vamos usar um broker chamado [RabbitMQ](ht
 
 Vamos agora implementar uma loja virtual com uma arquitetura Pub/Sub, de forma semelhante ao exemplo mostrado na seção anterior. 
 
-Imagine que essa loja vende discos de vinil e que temos que implementar o seu sistema de pós-venda. Por isso, a compra de um disco será o evento principal do sistema. Quando ele ocorrer, temos que verificar se o pedido é válido ou não. Se ele for válido, temos que:
+Imagine que essa loja vende discos de vinil e que temos que implementar o seu sistema de pós-venda. Por isso, a compra de um disco será o evento principal do sistema. Quando ele ocorrer, temos que verificar se o pedido é válido ou não, ou sejá se tem os dados necessários para a compra ser efetuada com sucesso ou se faltou alguma informação para que possamos prosseguir com a compra. Se ele for válido, temos que:
 
  * Notificar o cliente de que o seu pedido foi aprovado.
  * Notificar a equipe de transporte de que temos uma nova entrega para fazer. 
 
  Por outro lado, caso o pedido seja inválido teremos que:
  
-  * Notificar o cliente de que faltou uma determinada informação no seu pedido.
+* Notificar o cliente de que faltou uma determinada informação no seu pedido.
 
 Essas ações são independentes, ou seja, o cliente não vai ficar esperando o término de todo o processamento de seu pedido. Em vez disso, podemos informá-lo de que o seu pedido está sendo processado e, quando finalizarmos tudo, ele será avisado. 
 
@@ -72,7 +72,12 @@ Após o download, basta executar o Docker e, em seguida, executar o comando abai
 docker-compose up -d q-rabbitmq
 ````
 
-Após rodar esse comando, uma imagem do RabbitMQ estará executando localmente e podemos acessar sua interface gráfica, digitando no navegador: http://localhost:15672/. 
+Após rodar esse comando, uma imagem do RabbitMQ estará executando localmente e podemos acessar sua interface gráfica, digitando no navegador: http://localhost:15672 
+
+Por padrão, o acesso a interface terá como usuario e senha a palvra: guest (conforme imagem a baixo). Este usuario pode ser modificados, editando este [arquivo](https://github.com/aserg-ufmg/pub-sub-store/blob/263c006556f2989324459ca9bd43544905e4335d/rabbitmq/q-rabbitmq-auth.env)
+
+![login_rabbitMQ](./images/login_rabbit_mq.png)
+
 
 Por meio dessa interface, é possível monitorar as filas que são gerenciadas pelo RabbitMQ. Por exemplo, pode-se ver o número de mensagens em cada fila e as aplicações que estão conectadas nelas.
 
@@ -188,15 +193,6 @@ O serviço [contact](https://github.com/franneves/exemplo-de-uma-arquitetura-ori
 async function processMessage(msg) {
     const mailData = JSON.parse(msg.content)
     try {
-        const transporter = await nodemailer.createTransport({
-            host: "smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-                user: process.env.USER,
-                pass: process.env.PASS
-            }
-        })
-
         const mailOptions = {
             'from': process.env.MAIL_USER,
             'to': `${mailData.clientFullName} <${mailData.to}>`,
@@ -207,8 +203,8 @@ async function processMessage(msg) {
             'attachments': null
         }
 
-        await transporter.sendMail(mailOptions)
-
+        fs.writeFileSync(`${new Date()} - ${mailOptions.subject}.txt`, mailOptions);
+ 
         console.log(`✔ SUCCESS`)
     } catch (error) {
         console.log(`X ERROR TO PROCESS: ${error.response}`)
@@ -216,22 +212,11 @@ async function processMessage(msg) {
 }
 ```
 
-Para testar o envio de e-mail, vamos usar um serviço externo chamado [mailtrap](https://mailtrap.io/). Ele é um serviço especificamente criado para teste de sistemas que precisam enviar mails. Assim, você não precisa liberar acesso à sua conta pessoal de e-mail.
+Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos txt com o conteúdo que teria o email, para poder observar como seria os emaisl caso estivessemos de fato enviado. 
 
-Para usar o mailtrap, basta criar uma [conta](https://mailtrap.io/register/signup?ref=header), fornecendo dados básicos do seu email e nome. Assim que você criar a conta, será redirecionado para a página principal, conforme a imagem abaixo:
+Para enviar emails de verdade bastaria substituir a escrita do arquivo para um provedor de envio. A provedores de testes também no mercado, caso queira testar, um serviço possivel de se usar é o [mailtrap](https://mailtrap.io/).
 
-![pagina_principal](./images/mailtrap-credentials.jpg)
-
-Para configurar o uso do mailtrap na nossa loja virtual, basta expandir `Show Credentials` (veja na figura acima) e copiar o Username e Password no arquivo local [./services/contact/.env](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/blob/master/services/contact/.env), conforme exemplo abaixo:
-
-```js
-USER  = "a361840f92fg31"
-PASS  = "a16cb6f3d35b70"
-```
-
-Após essa configuração, os emails enviados pelo nosso sistema serão encaminhados para sua conta de teste do mailtrap.  
-
-Finalmente, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
+ Continuando o fluxo, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
 
 ```
 docker-compose up -d --build contact-service
@@ -247,10 +232,7 @@ Para visualizar esse log, basta executar:
  docker logs contact-service
 ````
 
-Outra forma de verificar que a mensagem foi enviada, é acessando a caixa de entrada do mailtrap, conforme imagem abaixo:
-
-
-![pedido_aprovado](./images/pedido_aprovado.jpg)
+Outra forma de verificar que a mensagem foi enviada, é certificando-se que foi criado o arquivo .json com o email dentro do projeto contact.
 
 ### 3º Serviço: Responsável por solicitar o envio de mercadoria
 
@@ -303,11 +285,13 @@ docker-compose down
 
 ## Passo 3:  Colocando a Mão na Massa
 
-Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema. Especificamente, ele irá também consumir eventos publicados na fila `orders`. 
+Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema.
+
+Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada report, portanto para realizar a análise basta consumir os eventos publicados na fila `reports`. 
 
 Seria possível nos ajudar e colocar em prática o que viu neste tutorial e construir uma aplicação que gere este relatório? 
 
-Nós começamos a construí-la e vocês podem usar o nosso código como exemplo. Mas não precisa ficar limitado a ele, você pode consumir mensagens de diferentes formas e com outras linguagens de programação. Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
+Nós começamos a construí-la e vocês podem usar o nosso código como [exemplo](https://github.com/franneves/exemplo-de-uma-arquitetura-orientada-a-eventos/tree/master/services/report). Mas não precisa ficar limitado a ele, você pode consumir mensagens de diferentes formas e com outras linguagens de programação. Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
 
 Qualquer dúvida, sintam-se à vontade para nos procurar: francielly.neves2@gmail.com
 

@@ -23,7 +23,8 @@ async function processMessage(msg) {
                 "subject": "Pedido Aprovado",
                 "text": `${orderData.name}, seu pedido de disco de vinil acaba de ser aprovado, e esta sendo preparado para entrega!`,
             })
-            await (await RabbitMQService.getInstance()).send('shipping', orderData)
+
+            await (await RabbitMQService.getInstance()).send('shipping', ...orderData)
             console.log(`✔ PEDIDO APROVADO`)
         } else {
             await (await RabbitMQService.getInstance()).send('contact', { 

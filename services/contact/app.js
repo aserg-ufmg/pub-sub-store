@@ -1,21 +1,14 @@
 const RabbitMQService = require('./rabbitmq-service')
 const nodemailer = require('nodemailer')
 const path = require('path')
+const fs = require('fs')
+
 
 require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 
 async function processMessage(msg) {
     const mailData = JSON.parse(msg.content)
     try {
-        const transporter = await nodemailer.createTransport({
-            host: "smtp.mailtrap.io",
-            port: 2525,
-            auth: {
-                user: process.env.USER,
-                pass: process.env.PASS
-            }
-        })
-
         const mailOptions = {
             'from': process.env.MAIL_USER,
             'to': `${mailData.clientFullName} <${mailData.to}>`,
@@ -26,10 +19,11 @@ async function processMessage(msg) {
             'attachments': null
         }
 
-        await transporter.sendMail(mailOptions)
-
+        fs.writeFileSync(`${mailOptions.subject}-${mailOptions.to}.json`, JSON.stringify(mailOptions));
+        
         console.log(`✔ SUCCESS`)
     } catch (error) {
+        console.log(error)
         console.log(`X ERROR TO PROCESS: ${error.response}`)
     }
 }
