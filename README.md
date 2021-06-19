@@ -83,7 +83,7 @@ Por meio dessa interface, é possível monitorar as filas que são gerenciadas p
 
 No entanto, ainda não temos nenhuma fila. Vamos, portanto, criar uma: 
 
-Como ilustrado na próxima figura, vá até a guia `Queues`, na sessão `add a new queue`. Preencha os campos `name` como `orders` e clique na opção `lazy mode`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos processos que vamos criar nos próximos passos.
+Como ilustrado na próxima figura, vá até a guia `Queues`, na sessão `add a new queue`. Preencha o campo `name` como `orders` e clique na opção `lazy mode`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos processos que vamos criar nos próximos passos.
 
 ![create_queue](./images/create_queue.png)
 
