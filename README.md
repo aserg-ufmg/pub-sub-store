@@ -232,9 +232,7 @@ Para visualizar esse log, basta executar:
  docker logs contact-service
 ````
 
-Outra forma de verificar que a mensagem foi enviada, é certificando-se que foi criado o arquivo .txt com o email:
-
-//todo: add photo
+Outra forma de verificar que a mensagem foi enviada, é certificando-se que foi criado o arquivo .json com o email dentro do projeto contact.
 
 ### 3º Serviço: Responsável por solicitar o envio de mercadoria
 
