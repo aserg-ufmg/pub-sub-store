@@ -212,8 +212,8 @@ async function processMessage(msg) {
 }
 ```
 
-Para manter o tutorial auto contido, no exemplo não iremos de fato enviar um email, iremos criar arquivos .json com o conteúdo que teria o email, para poder observar como seria os e-mails caso eles estivessem sendo enviados.
-Para enviar emails de verdade bastaria substituir a escrita do arquivo por um provedor de envio de e-mails. A provedores de testes também no mercado, caso queira testar, um serviço possível de se usar é o [mailtrap](https://mailtrap.io/).
+Para manter o tutorial auto-contido, no exemplo não iremos de fato enviar um email. Em vez disso, iremos apenas criar arquivos .json com o conteúdo que teria o email.
+Para enviar emails de verdade bastaria usar um provedor de envio de e-mails. Existem também provedores de testes, como, por exemplo, o [mailtrap](https://mailtrap.io/).
 
  Continuando o fluxo, chegou a hora de executar a aplicação, que assim como o serviço `orders`, pode ser inicializada via Docker, por meio do seguinte comando (sempre chamado na raiz do projeto):
 
