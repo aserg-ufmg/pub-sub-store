@@ -22,7 +22,7 @@ class RabbitMQ {
             }
         }
         catch (error) {
-            LogService.err(error.message)
+            console.log(error.message)
         }
     }
 
