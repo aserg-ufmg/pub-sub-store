@@ -212,7 +212,7 @@ async function processMessage(msg) {
 }
 ```
  
-Para manter o tutorial auto-contido, no exemplo não iremos de fato enviar um email. Em vez disso, iremos apenas criar arquivos .json com o conteúdo que teria o email, que serão salvos na raiz do projeto contact.
+Para manter o tutorial auto-contido, no exemplo não iremos de fato enviar um email. Em vez disso, iremos apenas criar arquivos .json com o conteúdo que teria o email, que serão salvos na raiz do projeto `contact`.
  
 Para enviar emails de verdade bastaria usar um provedor de envio de e-mails. Existem também provedores de testes, como, por exemplo, o [mailtrap](https://mailtrap.io/).
  
@@ -222,7 +222,7 @@ Para enviar emails de verdade bastaria usar um provedor de envio de e-mails. Exi
 docker-compose up -d --build contact-service
 ````
  
-Assim que o build finalizar, o serviço `contact-service` irá se conectar com RabbitMQ, consumirá a mensagem e gerará o arquivo .json com o conteúdo do email, na pasta do projeto contact. Para visualizar o log desta ação, basta executar:
+Assim que o build finalizar, o serviço `contact-service` irá se conectar com RabbitMQ, consumirá a mensagem e gerará o arquivo .json com o conteúdo do email, na pasta do projeto `contact`. Para visualizar o log desta ação, basta executar:
  
 ````
  docker logs contact-service
@@ -281,13 +281,15 @@ docker-compose down
  
 Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema.
  
-Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada report, portanto para realizar a análise basta consumir os eventos publicados na fila `reports`. 
+Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada `reports`. Portanto, para realizar a análise basta consumir os eventos publicados nessa fila.
  
-Seria possível nos ajudar e colocar em prática o que viu neste tutorial e construir uma aplicação que gere este relatório? O objetivo do relatório é bem simples, a cada compra ele deverá printar no console um resumo de todas as vendas feitas até o momento. 
+Seria possível nos ajudar, implementando uma aplicação que gere este relatório? O objetivo é bem simples: a cada compra devemos imprimir no console alguns dados básicos da mesma. 
  
-Nós começamos a construí-la e vocês podem usar o nosso código como [exemplo](/services/report/app.js), nele já implementamos as funções atualiza relatório e imprime relatório, falta apenas consumir da fila `reports`. Mas não precisa ficar limitado a este serviço, por exemplo, você pode consumir mensagens de diferentes formas e com outras linguagens de programação. Por exemplo, existem tutoriais que explicam como consumir mensagens em Python, C# , Ruby e JavaScript neste [guia](https://www.rabbitmq.com/getstarted.html).
+Nós começamos a construir esse relatário e vocês podem usar o nosso código como [exemplo](/services/report/app.js). Nele, já implementamos as funções que atualizam o relatório e que imprime os dados de uma venda. Agora, falta apenas implementar o código que vai consumir da fila `reports`. 
+
+O nosso ,exemplo está em JavaScript, mas se preferir você pode consumir mensagens em outras linguagens de programação. Por exemplo, este [guia](https://www.rabbitmq.com/getstarted.html) explica como consumir mensagens em Python, C# , Ruby e JavaScript. 
  
-Qualquer dúvida, sintam-se à vontade para nos procurar: francielly.neves2@gmail.com
+Qualquer dúvida, fiquem à vontade para nos procurar: francielly.neves2@gmail.com
  
 ## Outros Brokers de Eventos
  
