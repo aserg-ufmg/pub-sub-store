@@ -5,7 +5,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 
 var report = {}
 async function updateReport(products) {
-    for(let product in products) {
+    for(let product of products) {
         if(!product.name) {
             continue
         } else if(!report[product.name]) {
