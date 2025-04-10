@@ -3,7 +3,7 @@ version: "3"
 services:
   q-rabbitmq:
     container_name: q-rabbitmq
-    image: rabbitmq:3-management
+    image: rabbitmq:management
     hostname: q-rabbitmq-broker
     restart: unless-stopped
     networks:
