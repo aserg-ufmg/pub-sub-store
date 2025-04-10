@@ -65,6 +65,8 @@ Borá colocá-la em prática?  Primeiro, faça um fork deste repositório (veja 
 Como afirmamos antes, a lógica de Pub/Sub do nosso sistema será gerenciada pelo RabbitMQ. Ou seja, o armazenamento, publicação, assinatura e notificação de eventos será de responsabilidade desse broker. 
  
 Para facilitar o seu uso e execução, neste repositório já temos um container Docker com uma imagem do RabbitMQ. Se você não possui o Docker instalado na sua máquina, veja como fazer isso no seguinte [link](https://www.docker.com/products/docker-desktop).
+
+**Importante**: Dependendo da configuração de grupos do seu computador, pode ser necessário rodar os comandos do Docker com `sudo`. Porém, caso queira contornar essa situação, você pode seguir alguns [tutoriais online](https://medium.com/devops-technical-notes-and-manuals/how-to-run-docker-commands-without-sudo-28019814198f) para acertar essa configuração.
  
 Após o download, basta executar o Docker e, em seguida, executar o comando abaixo, na pasta raiz do projeto:
  
@@ -83,9 +85,11 @@ Por meio dessa interface, é possível monitorar as filas que são gerenciadas p
  
 No entanto, ainda não temos nenhuma fila. Vamos, portanto, criar uma: 
  
-Como ilustrado na próxima figura, vá até a guia `Queues`, na sessão `add a new queue`. Preencha o campo `name` como `orders` e clique na opção `lazy mode`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos processos que vamos criar nos próximos passos.
+Como ilustrado na próxima figura, vá até a guia `Queues and Streams`, na sessão `add a new queue`. Preencha o campo `name` como `orders` e adicione o argumento `x-queue-mode = lazy`. Essa opção fará com que a fila utilize mais o disco rígido do que a memória RAM, não prejudicando o desempenho dos processos que vamos criar nos próximos passos.
+
+**Importante**: Tome cuidado para adicionar esses arguementos sem nenhum espaçamento a mais, pois isso pode gerar erros futuramente.
  
-![create_queue](./images/create_queue.png)
+![create_queue](./images/new_create_queue.png)
  
 Com a fila criada, podemos agora criar um evento representando um pedido, de acordo com o formato abaixo (substitua os campos com dados fictícios à sua escolha):
  
@@ -117,17 +121,55 @@ Com a fila criada, podemos agora criar um evento representando um pedido, de aco
  
 Com o JSON preenchido, clique na fila na qual deseja inserir a mensagem, que neste caso é `orders`
  
-![select_queue](./images/select_queue.png)
+![select_queue](./images/new_select_queue.png)
  
 Na sessão `Publish message`, copie o JSON no campo `Payload`. Em seguida, clique em `publish message`
  
-![publish_message](./images/publish_message.png)
+![publish_message](./images/new_publish_message.png)
+
+Agora ao voltar ao menu `Queues and Streams`, você verá que a fila `orders` possui uma mensagem pendente, conforme a imagem abaixo:
+
+![order_created](./images/new_order_created.png)
  
 ## Passo 2: Subindo os Serviços
  
-### 1º Serviço: Processamento dos Pedidos
+### 1º Serviço: Responsável por solicitar o envio de mercadoria
  
-Até este momento, temos uma fila `orders`, com um evento em espera para ser processado. Ou seja, está na hora de subir uma aplicação para consumi-lo.
+E agora vamos colocar o primeiro serviço no ar. Esse serviço encaminha o pedido para o departamento de despacho, que será responsável por enviar a encomenda para a casa do cliente. Essa tarefa é de responsabilidade do serviço [shipping](/services/shipping), que conecta-se à fila `shipping` do RabbitMQ  e exibe o endereço da entrega.
+ 
+ 
+```JavaScript
+async function processMessage(msg) {
+    const deliveryData = JSON.parse(msg.content)
+    try {
+        if(deliveryData.address && deliveryData.address.zipCode) {
+            console.log(`✔ SUCCESS, SHIPPING AUTHORIZED, SEND TO:`)
+            console.log(deliveryData.address)
+        } else {
+            console.log(`X ERROR, WE CAN'T SEND WITHOUT ZIPCODE :'(`)
+        }
+ 
+    } catch (error) {
+        console.log(`X ERROR TO PROCESS: ${error.response}`)
+    }
+}
+```
+ 
+Para executar esse serviço, basta usar:
+ 
+```
+docker-compose up -d --build shipping-service
+````
+
+E ele já estará em execução, com uma nova fila criada no RabbitMQ, chamada `shipping`. No entanto, o status das filas ainda não foi alterado, pois `shipping` ainda não consumiu a mensagem que está na fila `orders`. 
+
+![shipping_service](./images/new_shipping_service.png)
+
+Isso será feito na próxima etapa com o serviço `orders` que vai ler a fila `orders` e processar a mensagem que acabamos de publicar. Assim, a nova mensagem processada vai chegar então no serviço de `shipping` para ser processada.
+
+### 2º Serviço: Processamento dos Pedidos
+ 
+Até este momento, temos uma fila `orders`, com um evento em espera para ser processado (`orders` atua como Produtor {Publisher}) e a fila `shipping` que está aguardando atualizações. Assim, está na hora de subir uma aplicação para consumir o pedido e dar continuidade ao processo (Subscriber).
  
 Na pasta `service` deste repositório, já implementamos o serviço [orders](/services/order), cuja função é ler pedidos da fila de mesmo nome e verificar se eles são válidos ou não. Se o pedido for válido, ele será encaminhado para duas filas: contactar cliente (*contact*) e preparo de envio (*shipping*), como é possível ver no seguinte código:
  
@@ -170,22 +212,38 @@ Após executá-lo, você pode acessar o log da aplicação por meio do seguinte 
  docker logs order-service
 ````
  
-Ao analisar este log, pode-se ver que a mensagem que inserimos na fila do RabbitMQ no passo anterior foi processada com sucesso. 
+Ao analisar este log, pode-se ver que a mensagem que inserimos na fila do RabbitMQ no passo anterior foi processada com sucesso, com o comando retornando `✔ PEDIDO APROVADO`.
  
 O que acabamos de fazer ilustra uma característica importante de aplicações construídas com uma arquitetura Pub/Sub: elas são tolerantes a falhas. Por exemplo, se um  consumidor estiver fora do ar, o evento não se perde e será processado assim que o consumidor ficar disponível novamente.
  
 Outra coisa que vale a pena mencionar: ao acessar a aba `Queues` no RabbitMQ, vamos ver que existem duas novas filas:
  
-![queues_final](./images/queues_final.png)
+![queues_final](./images/new_all_queues_created.png)
  
-Essas novas filas, `shipping` e `contact`, serão usadas, respectivamente, para comunicação com dois novos serviços:
+Essas novas filas, `report` e `contact`, serão usadas, respectivamente, para comunicação com dois novos serviços:
  
-* Um serviço que solicita o envio da mercadoria
+* Um serviço que prepara um relatório sobre os pedidos realizados.
 * Um serviço que contacta o cliente por email, informando se o seu pedido foi aprovado ou não.
+
+A fila `report` surgiu pois o serviço `shipping` já publica um evento nessa fila, informando que o pedido foi enviado. Ela não tinha sido criada anteriormente no passo 1 pois o serviço `shipping` ainda não estava em execução, somente a fila estava criada.
  
-Ambos já estão implementados em nosso repositório, conforme explicaremos a seguir.
+Ambos os serviços serão explicados posteriormente. Perceba como ao subir esse serviço consumidor, ele consumiu o pedido que estava em espera na fila `orders`, direcionou para `shipping` que também foi processado. Dessa forma, o status de ambas as filas acabou sendo alterado. Ao final, a fila `contact` e `report` ganharam novas mensagens, ainda não consumidas e que estão aguardando para serem processadas.
+
+Somente relembrando (mas também é possível chegar a essa conclusão analisando o código dos serviços), a fila `contact` recebeu uma nova mensagem através do serviço de `order` e a fila `report` recebeu a nova mensagem através do serviço de `shipping`.
+
+Agora que nosso serviço de `shipping` está em execução, conseguimos ver o status da sua operação. Para isso basta executar:
  
-### 2º Serviço: Envio de E-mail para Cliente 
+````
+ docker logs shipping-service
+````
+
+Assim, será possível ver uma saída semelhante a essa dependendo de como você criou o pedido:
+
+![shipping_message](./images/shipping_message.png)
+ 
+**Importante**: Caso o status do serviço `shipping` fosse checado logo na primeira etapa, nada seria retornado, visto que o serviço para consumir os pedidos ainda não tinha sido implementado. Portanto, o pedido ainda estaria na fila `orders`, aguardando para ser processado, como foi mostrado nas imagens acima.
+
+### 3º Serviço: Envio de E-mail para Cliente 
  
 O serviço [contact](/services/contact) implementa uma lógica que contacta o cliente por e-mail, informando o status da sua compra.  Ele assina os eventos da fila `contact` e, para cada novo evento, envia um email para o cliente responsável pela compra. A seguinte função `processMessage(msg)` é responsável por isso:
  
@@ -227,43 +285,27 @@ Assim que o build finalizar, o serviço `contact-service` irá se conectar com R
 ````
  docker logs contact-service
 ````
- 
-### 3º Serviço: Responsável por solicitar o envio de mercadoria
- 
-E agora temos que colocar o terceiro serviço no ar. Esse serviço encaminha o pedido para o departamento de despacho, que será responsável por enviar a encomenda para a casa do cliente. Essa tarefa é de responsabilidade do serviço [shipping](/services/shipping), que conecta-se à fila `shipping` do RabbitMQ  e exibe o endereço da entrega.
- 
- 
-```JavaScript
-async function processMessage(msg) {
-    const deliveryData = JSON.parse(msg.content)
-    try {
-        if(deliveryData.address && deliveryData.address.zipCode) {
-            console.log(`✔ SUCCESS, SHIPPING AUTHORIZED, SEND TO:`)
-            console.log(deliveryData.address)
-        } else {
-            console.log(`X ERROR, WE CAN'T SEND WITHOUT ZIPCODE :'(`)
-        }
- 
-    } catch (error) {
-        console.log(`X ERROR TO PROCESS: ${error.response}`)
-    }
-}
-```
- 
-Para executar esse terceiro serviço, basta usar:
- 
-```
-docker-compose up -d --build shipping-service
-````
- 
-E, como fizemos antes, para visualizar as informações exibidas pela aplicação, basta acessar o seu log:
+
+Dessa forma, o status retornado pelo log será `✔ SUCCESS`, indicando que o email foi enviado com sucesso.
+
+Para ver o e-mail gerado, é necessário entrar dentro do container `contact-service`. Para isso, execute o seguinte comando:
  
 ````
- docker logs shipping-service
+docker exec -it contact-service sh 
 ````
- 
-![shipping_message](./images/shipping_message.png)
- 
+
+E, em seguida, execute o comando `ls` para listar os arquivos do container. Então você verá o e-mail no arquivo .json com o nome: 
+
+````
+Pedido Aprovado-NOME_DO_CLIENTE <EMAIL_DO_CLIENTE>.json
+````
+
+Esse arquivo estará na raiz do container, com os valores dependendo de como você criou o pedido anteriormente na fila de `orders`.
+
+Observando as filas, é possível notar que agora que o serviço de `contact` está em execução, a mensagem que estava na fila `contact` foi processada e o status da fila foi alterado, como é possível ver na imagem abaixo:
+
+![contact_service](./images/new_service_contact.png)
+
 **Comentário Final:** Com isso, executamos todos os serviços da nossa loja virtual.
  
 Mas sugerimos que você faça novos testes, para entender melhor os benefícios desse tipo de arquitetura. Por exemplo, você pode:
@@ -281,13 +323,19 @@ docker-compose down
  
 Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema.
  
-Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada `report`. Portanto, para realizar a análise basta consumir os eventos publicados nessa fila.
+Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada `report` (como foi possível perceber nas imagens anteriores, a mensagem já chegou na fila `report` esperando então para ser consumida). Portanto, para realizar a análise basta consumir os eventos publicados nessa fila.
  
 Seria possível nos ajudar, implementando uma aplicação que gere esse relatório? O objetivo é bem simples: a cada compra devemos imprimir no console alguns dados básicos da mesma. 
  
 Nós começamos a construir esse relatório e vocês podem usar o nosso código como [exemplo](/services/report/app.js). Nele, já implementamos as funções que atualizam o relatório e que imprimem os dados de uma venda. Agora, falta apenas implementar o código que vai consumir da fila `report`. 
 
 O nosso exemplo está em JavaScript, mas se preferir você pode consumir mensagens em outras linguagens de programação. Por exemplo, este [guia](https://www.rabbitmq.com/getstarted.html) explica como consumir mensagens em Python, C# , Ruby e JavaScript. 
+
+Lembre-se também de alterar os arquivos do Docker para o novo serviço `report`.
+
+Desse modo, o status final das filas ficaria assim:
+
+![report_service](./images/new_final.png)
  
 ## Outros Brokers de Eventos
  
