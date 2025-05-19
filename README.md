@@ -345,7 +345,7 @@ Mas há outros sistemas que poderíamos ter utilizado e que são também bastant
  
 ## Créditos
  
-Este exercício prático, incluindo o seu código, foi elaborado por **Francielly Neves**, aluna de Sistemas de Informação da UFMG, como parte das suas atividades na disciplina Monografia II, cursada em 2021/1, sob orientação do **Prof. Marco Tulio Valente**.
+Este exercício prático, incluindo o seu código, foi elaborado por Francielly Neves, aluna de Sistemas de Informação da UFMG, como parte das suas atividades na disciplina Monografia II, cursada em 2021/1, sob orientação do Prof. Marco Tulio Valente. Uma atualização do roteiro foi realizada em 2025/1 por Francisco Aragão, monitor da disciplina de Engenharia de Software.
  
 O código deste repositório possui uma licença MIT. O roteiro descrito acima possui uma licença CC-BY.
  
