@@ -61,6 +61,20 @@ services:
     depends_on:
       q-rabbitmq:
         condition: service_healthy
+    
+  report-service: 
+    container_name: report-service
+    build:
+      context: . 
+      target: report-service
+    restart: unless-stopped
+    networks:
+      - q-rabbitmq-network
+    env_file:
+      - services/report/.env
+    depends_on:
+      q-rabbitmq:
+        condition: service_healthy
 
 networks:
   q-rabbitmq-network:
