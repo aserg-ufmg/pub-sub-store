@@ -15,3 +15,9 @@ FROM base AS shipping-service
 ADD  services/shipping/ .
 RUN npm install --only=production 
 CMD [ "node", "app.js" ]
+
+FROM python:3.9-alpine AS report-python-service
+WORKDIR /var/www/
+ADD services/report-python/ .
+RUN pip install --no-cache-dir -r requirements.txt
+CMD [ "python", "app.py" ]

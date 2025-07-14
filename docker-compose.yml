@@ -62,5 +62,19 @@ services:
       q-rabbitmq:
         condition: service_healthy
 
+  report-python-service:
+    container_name: report-python-service
+    build:
+      context: .
+      target: report-python-service
+    restart: unless-stopped
+    networks:
+      - q-rabbitmq-network
+    env_file:
+      - services/report-python/.env
+    depends_on:
+      q-rabbitmq:
+        condition: service_healthy
+
 networks:
   q-rabbitmq-network:

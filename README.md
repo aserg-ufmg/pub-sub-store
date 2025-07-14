@@ -306,6 +306,44 @@ Observando as filas, é possível notar que agora que o serviço de `contact` es
 
 ![contact_service](./images/new_service_contact.png)
 
+### 4º Serviço: Relatório de Vendas (Python)
+
+Implementamos também um serviço adicional de relatório de vendas em Python que consome mensagens da fila `report` e gera relatórios detalhados das vendas realizadas.
+
+O serviço [report-python](/services/report-python) conecta-se à fila `report` e processa cada venda, mantendo um registro atualizado de:
+
+- Quantidade de produtos vendidos por tipo
+- Total de vendas realizadas  
+- Receita total acumulada
+- Relatórios em tempo real
+
+```python
+def process_message(self, ch, method, properties, body):
+    """Processa mensagens recebidas da fila report"""
+    try:
+        message_data = json.loads(body.decode('utf-8'))
+        products = message_data.get('products', [])
+        
+        if products:
+            self.update_report(products)
+            self.print_report()
+            
+    except Exception as e:
+        print(f" [x] Erro ao processar mensagem: {e}")
+```
+
+Para executar este serviço:
+
+```
+docker-compose up -d --build report-python-service
+```
+
+Para visualizar os relatórios sendo gerados em tempo real:
+
+```
+docker logs -f report-python-service
+```
+
 **Comentário Final:** Com isso, executamos todos os serviços da nossa loja virtual.
  
 Mas sugerimos que você faça novos testes, para entender melhor os benefícios desse tipo de arquitetura. Por exemplo, você pode:
