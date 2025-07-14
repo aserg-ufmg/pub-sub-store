@@ -350,3 +350,4 @@ Este exercício prático, incluindo o seu código, foi elaborado por Francielly 
 O código deste repositório possui uma licença MIT. O roteiro descrito acima possui uma licença CC-BY.
  
 
+Primeiro commit no novo branch activity-1, que contém o código do exemplo de arquitetura Pub/Sub.
