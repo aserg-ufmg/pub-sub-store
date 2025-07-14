@@ -20,17 +20,17 @@ async function processMessage(msg) {
             await (await RabbitMQService.getInstance()).send('contact', { 
                 "clientFullName": orderData.name,
                 "to": orderData.email,
-                "subject": "Pedido Aprovado",
-                "text": `${orderData.name}, seu pedido de disco de vinil acaba de ser aprovado, e esta sendo preparado para entrega!`,
+                "subject": "Pedidooo Aprovadooo",
+                "text": `${orderData.name}, seu pedido de disco de vinil acaba de ser aprovadoooo, e esta sendo preparado para entregaaaaaa!`,
             })
 
             await (await RabbitMQService.getInstance()).send('shipping', orderData)
-            console.log(`✔ PEDIDO APROVADO`)
+            console.log(`✔ PEDIDO APROVADOOOO`)
         } else {
             await (await RabbitMQService.getInstance()).send('contact', { 
                 "clientFullName": orderData.name,
                 "to": orderData.email,
-                "subject": "Pedido Reprovado",
+                "subject": "Pedido Reprovadoooo",
                 "text": `${orderData.name}, seus dados não foram suficientes para realizar a compra :( por favor tente novamente!`,
             })
             console.log(`X PEDIDO REPROVADO`)
@@ -41,7 +41,7 @@ async function processMessage(msg) {
 }
 
 async function consume() {
-    console.log(`INSCRITO COM SUCESSO NA FILA: ${process.env.RABBITMQ_QUEUE_NAME}`)
+    console.log(`INSCRITO COM SUCESSO NA FILAAAAA do order: ${process.env.RABBITMQ_QUEUE_NAME}`)
     await (await RabbitMQService.getInstance()).consume(process.env.RABBITMQ_QUEUE_NAME, (msg) => {processMessage(msg)})
 } 
 
