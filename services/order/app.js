@@ -25,7 +25,7 @@ async function processMessage(msg) {
             })
 
             await (await RabbitMQService.getInstance()).send('shipping', orderData)
-            console.log(`✔ PEDIDO APROVADO`)
+            console.log(`✔ ORDER APPROVED`)
         } else {
             await (await RabbitMQService.getInstance()).send('contact', { 
                 "clientFullName": orderData.name,
@@ -33,7 +33,7 @@ async function processMessage(msg) {
                 "subject": "Pedido Reprovado",
                 "text": `${orderData.name}, seus dados não foram suficientes para realizar a compra :( por favor tente novamente!`,
             })
-            console.log(`X PEDIDO REPROVADO`)
+            console.log(`X ORDER REJECTED`)
         }
     } catch (error) {
         console.log(`X ERROR TO PROCESS: ${error.response}`)
@@ -41,7 +41,7 @@ async function processMessage(msg) {
 }
 
 async function consume() {
-    console.log(`INSCRITO COM SUCESSO NA FILA: ${process.env.RABBITMQ_QUEUE_NAME}`)
+    console.log(`SUCCESSFULLY SUBSCRIBED TO QUEUE: ${process.env.RABBITMQ_QUEUE_NAME}`)
     await (await RabbitMQService.getInstance()).consume(process.env.RABBITMQ_QUEUE_NAME, (msg) => {processMessage(msg)})
 } 
 

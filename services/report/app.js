@@ -19,7 +19,7 @@ async function updateReport(products) {
 
 async function printReport() {
     for (const [key, value] of Object.entries(report)) {
-        console.log(`${key} = ${value} vendas`);
+        console.log(`${key} = ${value} sales`);
       }
 }
 

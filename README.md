@@ -185,7 +185,7 @@ async function processMessage(msg) {
                 "text": `${orderData.name}, seu pedido de disco de vinil acaba de ser aprovado, e esta sendo preparado para entrega!`,
             })
             await (await RabbitMQService.getInstance()).send('shipping', orderData)
-            console.log(`✔ PEDIDO APROVADO`)
+            console.log(`✔ ORDER APPROVED`)
         } else {
             await (await RabbitMQService.getInstance()).send('contact', { 
                 "clientFullName": orderData.name,
@@ -193,7 +193,7 @@ async function processMessage(msg) {
                 "subject": "Pedido Reprovado",
                 "text": `${orderData.name}, seus dados não foram suficientes para realizar a compra :( por favor tente novamente!`,
             })
-            console.log(`X PEDIDO REPROVADO`)
+            console.log(`X ORDER REJECTED`)
         }
     } catch (error) {
         console.log(`X ERROR TO PROCESS: ${error.response}`)
@@ -212,7 +212,7 @@ Após executá-lo, você pode acessar o log da aplicação por meio do seguinte 
  docker logs order-service
 ````
  
-Ao analisar este log, pode-se ver que a mensagem que inserimos na fila do RabbitMQ no passo anterior foi processada com sucesso, com o comando retornando `✔ PEDIDO APROVADO`.
+Ao analisar este log, pode-se ver que a mensagem que inserimos na fila do RabbitMQ no passo anterior foi processada com sucesso, com o comando retornando `✔ ORDER APPROVED`.
  
 O que acabamos de fazer ilustra uma característica importante de aplicações construídas com uma arquitetura Pub/Sub: elas são tolerantes a falhas. Por exemplo, se um  consumidor estiver fora do ar, o evento não se perde e será processado assim que o consumidor ficar disponível novamente.
  
