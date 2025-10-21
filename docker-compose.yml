@@ -13,6 +13,8 @@ services:
       - "15672:15672"
     env_file:
       - rabbitmq/q-rabbitmq-auth.env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
     # Do some health checks to see if q-rabbitmq is running before starting the other services
     healthcheck: 
       test: rabbitmq-diagnostics -q status
@@ -64,3 +66,6 @@ services:
 
 networks:
   q-rabbitmq-network:
+
+volumes:
+  rabbitmq-data:

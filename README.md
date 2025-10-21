@@ -312,8 +312,14 @@ Mas sugerimos que você faça novos testes, para entender melhor os benefícios 
  
 * Subir e derrubar os serviços, em qualquer ordem, e testar se não há perda de mensagens.
 * Publicar uma nova mensagem na fila e testar se ela vai ser mesmo consumida por todos os serviços.
- 
-Para encerrar o container e finalizar as aplicações, basta executar: 
+
+**Importante sobre Persistência de Dados:** Note que o RabbitMQ está configurado com um volume Docker (`rabbitmq-data`), o que significa que as filas e mensagens não processadas são preservadas mesmo quando você encerra os containers. Isso é fundamental em ambientes de produção e garante que nenhuma mensagem seja perdida. Se você quiser remover completamente todos os dados, incluindo as filas e mensagens armazenadas, use o comando:
+
+````
+docker-compose down -v
+````
+
+O parâmetro `-v` remove os volumes associados. Para apenas parar os containers mantendo os dados, use:
  
 ````
 docker-compose down
@@ -324,6 +330,8 @@ docker-compose down
 Ao terminar o projeto, sentimos falta de uma aplicação para gerar relatórios com os pedidos que foram feitos. Mas felizmente estamos usando uma arquitetura Pub/Sub e apenas precisamos "plugar" esse novo serviço no sistema.
  
 Após uma venda ser entregue com sucesso, publicamos o resultado numa fila chamada `report` (como foi possível perceber nas imagens anteriores, a mensagem já chegou na fila `report` esperando então para ser consumida). Portanto, para realizar a análise basta consumir os eventos publicados nessa fila.
+
+**Observação Importante:** Graças à persistência de dados do RabbitMQ (configurada via Docker volumes), as mensagens na fila `report` estão preservadas e aguardando processamento, mesmo que você tenha parado os containers anteriormente. Esta é uma característica fundamental de sistemas de mensageria: **as mensagens não se perdem** enquanto aguardam por um consumidor. Isso demonstra a tolerância a falhas e o desacoplamento temporal que arquiteturas Pub/Sub proporcionam.
  
 Seria possível nos ajudar, implementando uma aplicação que gere esse relatório? O objetivo é bem simples: a cada compra devemos imprimir no console alguns dados básicos da mesma. 
  
@@ -345,7 +353,7 @@ Mas há outros sistemas que poderíamos ter utilizado e que são também bastant
  
 ## Créditos
  
-Este exercício prático, incluindo o seu código, foi elaborado por Francielly Neves, aluna de Sistemas de Informação da UFMG, como parte das suas atividades na disciplina Monografia II, cursada em 2021/1, sob orientação do Prof. Marco Tulio Valente. Uma atualização do roteiro foi realizada em 2025/1 por Francisco Teixeira Rocha Aragão, monitor da disciplina de Engenharia de Software.
+Este exercício prático, incluindo o seu código, foi elaborado por Francielly Neves, aluna de Sistemas de Informação da UFMG, como parte das suas atividades na disciplina Monografia II, cursada em 2021/1, sob orientação do Prof. Marco Tulio Valente. Uma atualização do roteiro foi realizada em 2025/1 por Francisco Teixeira Rocha Aragão e em 2025/2 por Marcelo Mrad, monitores da disciplina de Engenharia de Software.
  
 O código deste repositório possui uma licença MIT. O roteiro descrito acima possui uma licença CC-BY.
  
