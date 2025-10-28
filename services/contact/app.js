@@ -7,6 +7,43 @@ const fs = require('fs')
 require('dotenv').config({ path: path.resolve(__dirname, '.env') })
 
 async function processMessage(msg) {
+    const deliveryData = JSON.parse(msg.content)
+    try {
+        if(deliveryData.address && deliveryData.address.zipCode) {
+            console.log(`✔ SUCCESS, SHIPPING AUTHORIZED, SEND TO:`)
+            console.log(deliveryData.address)
+        } else {
+            console.log(`X ERROR, WE CAN'T SEND WITHOUT ZIPCODE :'(`)
+        }
+ 
+    } catch (error) {
+        console.log(`X ERROR TO PROCESS: ${error.response}`)
+    }
+
+    const orderData = JSON.parse(msg.content)
+    try {
+        if(isValidOrder(orderData)) {
+            await (await RabbitMQService.getInstance()).send('contact', { 
+                "clientFullName": orderData.name,
+                "to": orderData.email,
+                "subject": "Pedido Aprovado",
+                "text": `${orderData.name}, seu pedido de disco de vinil acaba de ser aprovado, e esta sendo preparado para entrega!`,
+            })
+            await (await RabbitMQService.getInstance()).send('shipping', orderData)
+            console.log(`✔ ORDER APPROVED`)
+        } else {
+            await (await RabbitMQService.getInstance()).send('contact', { 
+                "clientFullName": orderData.name,
+                "to": orderData.email,
+                "subject": "Pedido Reprovado",
+                "text": `${orderData.name}, seus dados não foram suficientes para realizar a compra :( por favor tente novamente!`,
+            })
+            console.log(`X ORDER REJECTED`)
+        }
+    } catch (error) {
+        console.log(`X ERROR TO PROCESS: ${error.response}`)
+    }
+
     const mailData = JSON.parse(msg.content)
     try {
         const mailOptions = {
