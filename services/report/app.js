@@ -25,6 +25,20 @@ async function printReport() {
 
 async function consume() {
     //TODO: Constuir a comunicação com a fila 
+    console.log(`SUCCESSFULLY SUBSCRIBED TO QUEUE: ${process.env.RABBITMQ_QUEUE_NAME}`)
+    await (await RabbitMQService.getInstance()).consume(process.env.RABBITMQ_QUEUE_NAME, async (msg) => {
+        try {
+            const data = JSON.parse(msg.content)
+            if (data.products && Array.isArray(data.products)) {
+                await updateReport(data.products)
+                await printReport()
+            } else {
+                console.log('X INVALID MESSAGE FOR REPORT: missing products')
+            }
+        } catch (err) {
+            console.log(`X ERROR TO PROCESS: ${err && err.message}`)
+        }
+    })
 } 
 
 consume()
