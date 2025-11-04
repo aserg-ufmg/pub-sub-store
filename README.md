@@ -344,6 +344,42 @@ Lembre-se também de alterar os arquivos do Docker para o novo serviço `report`
 Desse modo, o status final das filas ficaria assim:
 
 ![report_service](./images/new_final.png)
+
+### Subindo o Serviço de Relatório
+
+Para executar o serviço de relatório, utilize o seguinte comando na raiz do projeto:
+
+```
+docker-compose up -d --build report-service
+```
+
+Após a execução, você pode verificar os logs do serviço com:
+
+```
+docker logs report-service
+```
+
+Se tudo estiver funcionando corretamente, você verá os dados do pedido sendo impressos no console, indicando que o relatório está sendo gerado com sucesso.
+
+### Entregando a Tarefa
+
+**IMPORTANTE**: Se tudo funcionou corretamente, realize um **COMMIT & PUSH** das suas alterações (e certifique-se de que seu repositório no GitHub está atualizado; isso é essencial para que seu trabalho seja avaliado corretamente).
+
+Execute os seguintes comandos no terminal do Git Bash ou do PowerShell (na raiz do projeto):
+
+```bash
+git add --all
+git commit -m "Tarefa prática - Implementação do serviço de relatórios"
+git push origin master
+```
+
+**Explicação dos comandos:**
+
+* `git add --all`: Adiciona todas as modificações realizadas (arquivos novos, alterados ou deletados) à área de staging do Git.
+* `git commit -m "mensagem"`: Cria um commit (um ponto de salvamento) com as alterações adicionadas, incluindo uma mensagem descritiva.
+* `git push origin master`: Envia (faz upload) o commit para o repositório remoto no GitHub, na branch `master`.
+
+**Dica:** Para verificar se suas alterações foram enviadas corretamente, acesse seu repositório no GitHub pelo navegador e confira se os arquivos foram atualizados com a data e hora recentes.
  
 ## Outros Brokers de Eventos
  
